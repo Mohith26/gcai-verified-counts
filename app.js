@@ -101,7 +101,7 @@ function render() {
       <div></div>
       <div class="verified">
         <div>
-          <div class="vbig">${est.lo === null ? `<span class="tag pending">Not verified</span><strong>—</strong><span>check at least 2 contracts</span>` : `<span class="tag ${done ? '' : 'pending'}">${done ? 'Verified' : 'Provisional'}</span><strong>${fmt(est.lo)}–${fmt(est.hi)}</strong><span>contracts, 95% confidence · best estimate ${fmt(est.est)}</span>`}</div>
+          <div class="vbig">${est.lo === null || est.m < 5 ? `<span class="tag pending">Not verified</span><strong>—</strong><span>${est.m ? `${est.m} of 5 checks before a range appears` : 'no checks yet'}</span>` : `<span class="tag ${done ? '' : 'pending'}">${done ? 'Verified' : 'Provisional'}</span><strong>${fmt(est.lo)}–${fmt(est.hi)}</strong><span>contracts, 95% confidence · best estimate ${fmt(est.est)}</span>`}</div>
           <div class="vsub">${est.m ? `Based on ${est.m} lawyer check${est.m === 1 ? '' : 's'} (${est.unique} contracts) plus the AI values for all ${N}. ${est.m < est.plan ? `Plan: ${est.plan} checks; the range is provisional until they are done.` : 'Plan complete.'}` : `Check a few contracts the AI was least sure about. Every check corrects the count for all ${N}, not just that row.`}</div>
           <div class="prog"><span>${Math.min(est.m, est.plan)} / ${est.plan} checks</span><div class="bar"><i style="width:${Math.min(100, 100 * est.m / est.plan)}%"></i></div></div>
           <div class="acts">
@@ -132,7 +132,7 @@ function rangeSvg(est, ai, truth, N) {
   return `<div class="range"><svg viewBox="0 0 ${W} 56" role="img" aria-label="AI count ${ai}${est.lo !== null ? `, verified range ${fmt(est.lo)} to ${fmt(est.hi)}` : ''}">
     <line x1="10" x2="${W - 10}" y1="30" y2="30" stroke="#e4d9cc" stroke-width="2"/>
     ${ticks.map(t => `<line x1="${X(t)}" x2="${X(t)}" y1="27" y2="33" stroke="#c4b4a4"/><text x="${X(t)}" y="50" text-anchor="middle">${t}</text>`).join('')}
-    ${est.lo !== null ? `<rect x="${X(est.lo)}" y="24" width="${Math.max(2, X(est.hi) - X(est.lo))}" height="12" rx="6" fill="#b8cfd8"/><circle cx="${X(est.est)}" cy="30" r="5" fill="#173c51"/>` : ''}
+    ${est.lo !== null && est.m >= 5 ? `<rect x="${X(est.lo)}" y="24" width="${Math.max(2, X(est.hi) - X(est.lo))}" height="12" rx="6" fill="#b8cfd8"/><circle cx="${X(est.est)}" cy="30" r="5" fill="#173c51"/>` : ''}
     <line x1="${X(ai)}" x2="${X(ai)}" y1="14" y2="38" stroke="#aa544b" stroke-width="2"/><text x="${X(ai)}" y="10" text-anchor="middle" fill="#aa544b">AI ${ai}</text>
     ${S.showTruth ? `<path d="M${X(truth)} 38 l-5 8 h10z" fill="none" stroke="#377853" stroke-width="1.6"/><text x="${Math.min(W - 30, X(truth) + 10)}" y="${est.lo !== null ? 18 : 18}" fill="#377853">${truth === ai ? '' : 'true ' + truth}</text>` : ''}
   </svg></div>`;
