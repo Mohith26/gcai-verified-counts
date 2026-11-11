@@ -170,18 +170,19 @@ function drawerHtml(mode, docSel) {
     const i = docSel ?? progress().next ?? 0, d = VAULT.docs[i];
     return `${head}<div class="dr-b"><h3>${esc(d.name)}</h3><div class="meta">${esc(d.title)}</div>
       <div class="kv">${KEYS.map(k => { const c = VAULT.columns[k].cells[i], lab = (S.labels[k] || {})[i]; return `<span>${esc(VAULT.columns[k].label)}</span><b style="font-weight:500">${c.p >= .5 ? 'Yes' : 'No'} <small style="color:#857869;font-weight:400">AI ${(c.p * 100).toFixed(0)}%${lab !== undefined ? ` · you: ${lab ? 'Yes' : 'No'}` : ''}</small></b>`; }).join('')}</div>
-      <div class="lbl">AI citation · ${esc(VAULT.columns[S.col].label)}</div><p class="quote">${esc(VAULT.columns[S.col].cells[i].q)}</p>
+      <div class="lbl">${VAULT.columns[S.col].cells[i].p >= .5 ? 'AI citation' : 'Closest passage the AI found'} · ${esc(VAULT.columns[S.col].label)}</div><p class="quote">${esc(VAULT.columns[S.col].cells[i].q)}${VAULT.columns[S.col].cells[i].q.length >= 240 ? '…' : ''}</p>
       <button class="btn sm" style="margin-top:14px" data-jump="${i}">Check this contract for ${esc(VAULT.columns[S.col].label.toLowerCase())}</button></div>`;
   }
   const pr = progress(), est = estimate(), cs = cells();
   if (pr.next === null) return `${head}<div class="dr-b"><h3>Queue finished</h3><p class="meta">All ${QUEUE_LEN} queued checks are done.</p></div>`;
   const i = (R.q.jump !== undefined ? +R.q.jump : pr.next), c = cs[i], d = VAULT.docs[i];
   const L = labelsOf(), upcoming = queue().draws.slice(pr.m, pr.m + 8);
-  return `${head}<div class="dr-b">
+  const doneBanner = pr.m >= est.plan && R.q.jump === undefined ? `<div class="reveal" style="margin:0 0 14px;border-style:solid;background:#f1f7f2;border-color:#deece0;color:#235337"><b style="color:#235337">Plan complete: ${est.plan} of ${est.plan} checks.</b> The range is verified. Keep going to tighten it, or switch questions above.</div>` : '';
+  return `${head}<div class="dr-b">${doneBanner}
     <div class="lbl" style="margin-top:0">Check ${pr.m + 1}${pr.m + 1 <= est.plan ? ' of ' + est.plan : ' · beyond plan'} · ${c.p > .15 && c.p < .85 ? 'picked because the AI is unsure' : 'random share of the sample'}</div>
     <h3 style="margin-top:6px">${esc(d.name)}</h3><div class="meta">${esc(d.title)}</div>
     <div class="kv"><span>Question</span><b style="font-weight:500">Does it contain ${esc(VAULT.columns[S.col].label.toLowerCase())}?</b><span>AI value</span><b style="font-weight:500">${c.p >= .5 ? 'Yes' : 'No'} · ${(c.p * 100).toFixed(0)}% sure</b><span>Picked</span><b style="font-weight:500">${(queue().pi[i] * cs.length).toFixed(1)}× as often as a random pick</b></div>
-    <div class="lbl">AI citation</div><p class="quote">${esc(c.q)}</p>
+    <div class="lbl">${c.p >= .5 ? 'AI citation' : 'Closest passage the AI found'}</div><p class="quote">${esc(c.q)}${c.q.length >= 240 ? '…' : ''}</p>
     <div class="decide"><button class="btn pri" data-ans="1"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>Yes, it's there</button><button class="btn" data-ans="0"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>No, it isn't</button></div>
     <div class="hint">Keyboard: <kbd>Y</kbd> yes · <kbd>N</kbd> no · <kbd>J</kbd>/<kbd>K</kbd> move in the table</div>
     <details class="reveal"><summary>What did the CUAD lawyers mark?</summary><p style="margin:8px 0 0"><b>${c.y ? 'Present' : 'Not present'}</b>${c.t ? `: “${esc(c.t)}”` : ''}</p></details>
